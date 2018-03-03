@@ -1,5 +1,5 @@
 # seqFiltR
-[Dev] R-based tool for filtering a sequence file(s) based on supplied indices or another sequence file.
+[Dev] R-based tool for filtering a sequence file based on supplied indices or another sequence file.
 
 ## Description
 Sequence files may sometimes contain only a few reads relevant to an analysis, or host a number of reads needing to be removed. Removal of unwanted sequences, or selection of desired sequences, can help with reducing downstream analysis and requirements. The **seqFiltR** tool is designed to do both positive and negative selection by indices (matching sequence names) for fasta and fastq files. Further, if two fasta or fastq files are provided (such as from paired-end sequencing, R1 and R2) then only the intersect (positive selection) or unique (negative selection) reads will be selected. 
@@ -45,7 +45,32 @@ Rscript /path/to/seqFilt.R test.fastq -o test.filt.fastq -s ACTCTACGGCATTAGGCTAC
 ```
 
 ## Arguments
+**[seqFile(s)]** Sequence file(s) to filter. Can be fasta or fastq formats.
 
+**[-h, --help]** Help information regarding input format and arguments available.
+
+**[-o, --output]** File name(s) of output file(s). Can specify different format from input if desired. Must provide same number of output file names as input files. If not provided, output will be printed to screen in the input file format.
+
+**[-i, --index]** A single file containing sequence names to filter for. Each sequence name must match the input file sequence names after extraction of the regex provided by **[--readNamePattern]**. Ignored if two **[seqFiles]** are provided.
+
+**[-n, --neg]** Specify if the filtering process should be negative, positive by default. Negative selection will only return sequences that do not match to input criteria.
+
+**[-s, --seq]** Filter reads by input nucleotide sequence. DNA, RNA, and ambiguous nucleotide sequences allowed.
+
+**[-m, --mismatch]** Allowed number of mismatches for sequence matching (**[-s]**). Ignored if **[-s, --seq]** is not provided. Default is 0 mismatches.
+
+**[--readNamePattern]** Regex pattern applied to sequence names prior to any matching. Also applied to sequence names from index files. Default pattern: '[\w:-]+'
+
+**[--compress]** Output fast(a/q) files are gzip compressed.
+
+**[-c, --cores]** Number of maximum cores to parallel the processing during certain steps.
 
 
 ## Dependencies
+This script relies on several R-packages that need to be installed prior to use:
+
+* ShortRead
+* stringr
+* argparse
+* pander
+* parallel (if multicore processing is desired)
