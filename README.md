@@ -9,7 +9,7 @@ Sequence files may sometimes contain only a few reads relevant to an analysis, o
 ## Usage
 Below are a number of different filtering processes that **seqFiltR** can be used for:
 
-### Filter reads based on read names or indices
+### Filter sequences based on sequence names or indices
 Given a file containing indices matching the sequence names within the provided fastq or fasta file, **seqFiltR** can preform either positive or negative (**[-n]**) filtering and return the filtered sequences as a fastq or fasta file, based on output file extension. If an output file is not provided, the filtered sequences will be printed to the terminal in the input file format.
 
 ```
