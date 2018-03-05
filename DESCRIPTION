@@ -9,10 +9,8 @@ Description: Tool used for filtering sequence files in fasta or fastq format.
     methods.
 License: GNU General Public License v3
 LazyData: TRUE
-Remotes: 
-    github::hadley/devtools@efa894ffa,
-    bioc::release/ShortRead
 Depends:
+    ShortRead,
     stringr,
     argparse,
     pander,
