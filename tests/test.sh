@@ -4,6 +4,9 @@ set -ev
 # Empty test directory of test output files
 rm -f tests/seq_*
 
+# Test for required packages
+Rscript check_for_required_packages.R
+
 # Test for sequence filtering (positive and negative selection)
 Rscript seqFilt.R tests/Data/Undetermined_S0_L001_I1_001.fastq.gz -o tests/seq_filt_I1.fastq -s CGTACTAG --compress
 filt_test_len=$(zcat tests/seq_filt_I1.fastq.gz | sed -n '2~4p' | wc -l)
