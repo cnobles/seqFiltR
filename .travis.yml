@@ -5,6 +5,7 @@ r_packages:
   - pander
   - stringr
   - data.table
+  - argparse
   - parallel
 bioc_packages: ShortRead
 r:

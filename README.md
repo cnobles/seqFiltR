@@ -83,4 +83,5 @@ This script relies on several R-packages that need to be installed prior to use:
 * argparse
 * pander
 * yaml
+* data.table
 * parallel (if multicore processing is desired)
