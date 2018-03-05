@@ -6,6 +6,19 @@
 Sequence files may sometimes contain only a few reads relevant to an analysis, or host a number of reads needing to be removed. Removal of unwanted sequences, or selection of desired sequences, can help with reducing downstream analysis and requirements. The **seqFiltR** tool is designed to do both positive and negative selection by indices (matching sequence names) for fasta and fastq files. Further, if two fasta or fastq files are provided (such as from paired-end sequencing, R1 and R2) then only the intersect (positive selection) or unique (negative selection) reads will be selected. 
 
 ## Install
+To install **seqFiltR**, clone the repository and run in an environment with the required R-packages. You can check if the required packages are installed by running the Rscript check_installed_packages.R.
+
+```
+# Download repository
+git clone https://github.com/cnobles/seqFiltR.git
+
+# Check required packages are installed
+cd seqFiltR
+Rscript check_for_required_packages.R
+
+# Test functionality of seqFiltR
+bash tests/test.sh
+```
 
 ## Usage
 Below are a number of different filtering processes that **seqFiltR** can be used for:
