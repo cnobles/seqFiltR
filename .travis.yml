@@ -10,9 +10,6 @@ bioc_packages: ShortRead
 r:
   - release
 cache: packages
-install:
-  - R -e "devtools::install_deps(dep = T)"
 script:
-  - git clone https://github.com/cnobles/seqFiltR.git
   - cd seqFiltR
   - bash tests/test.sh
