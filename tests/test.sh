@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -ev
 
+# Working directory
+pwd
+
 # Empty output directory to start
 rm -rf tests/test_output/*
 
