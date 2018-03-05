@@ -2,7 +2,4 @@
 language: r
 r: bioc-release
 cache: packages
-r_github_packages: hadley/devtools@efa894ffa
-r_packages: pander, yaml, stringr, argparse, parallel, data.table
-bioc_packages: ShortRead
 script: bash tests/test.sh
