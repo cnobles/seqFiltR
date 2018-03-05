@@ -14,5 +14,6 @@ Depends:
     stringr,
     argparse,
     pander,
+    yaml,
     data.table,
     parallel
