@@ -51,19 +51,25 @@ Rscript /path/to/seqFilt.R test.fastq -o test.filt.fastq -s ACTCTACGGCATTAGGCTAC
 
 **[-o, --output]** File name(s) of output file(s). Can specify different format from input if desired. Must provide same number of output file names as input files. If not provided, output will be printed to screen in the input file format.
 
-**[-i, --index]** A single file containing sequence names to filter for. Each sequence name must match the input file sequence names after extraction of the regex provided by **[--readNamePattern]**. Ignored if two **[seqFiles]** are provided.
+**[-i, --index]** A single file containing sequence names to filter for. Each sequence name must match the input file sequence names after extraction of the regex provided by **[--readNamePattern]**.
 
-**[-n, --neg]** Specify if the filtering process should be negative, positive by default. Negative selection will only return sequences that do not match to input criteria.
+**[-n, --negSelect]** Specify if the filtering process should be negative, positive by default. Negative selection will only return sequences that do not match to input criteria.
 
 **[-s, --seq]** Filter reads by input nucleotide sequence. DNA, RNA, and ambiguous nucleotide sequences allowed.
 
 **[-m, --mismatch]** Allowed number of mismatches for sequence matching (**[-s]**). Ignored if **[-s, --seq]** is not provided. Default is 0 mismatches.
+
+**[--any]** If multiple methods of filtering should be used, sequences in output files will need to meet all criteria by default. Using this option will allow for sequences passing any of the criteria to be returned.
 
 **[--readNamePattern]** Regex pattern applied to sequence names prior to any matching. Also applied to sequence names from index files. Default pattern: '[\w:-]+'
 
 **[--compress]** Output fast(a/q) files are gzip compressed.
 
 **[-c, --cores]** Number of maximum cores to parallel the processing during certain steps.
+
+**[-q, --quiet]** Silences any log outputs. Will still return sequence output file contents if not given an output option.
+
+**[--stat]** File name of output file for script stats. Output formats of .csv or .tsv are compatible. Stats will still appear in log output, if not silenced by [-q, --quiet].
 
 
 ## Dependencies
@@ -73,4 +79,5 @@ This script relies on several R-packages that need to be installed prior to use:
 * stringr
 * argparse
 * pander
+* yaml
 * parallel (if multicore processing is desired)
