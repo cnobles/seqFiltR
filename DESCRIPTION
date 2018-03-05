@@ -17,4 +17,4 @@ Depends:
     data.table (>= 1.10),
     parallel (>= 3.4)
 Remotes:
-    bioc::release/ShortRead (>= 1.34)
+    bioc::release/ShortRead
