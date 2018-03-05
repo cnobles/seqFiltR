@@ -340,6 +340,8 @@ output_seqs <- mapply(
 
 
 # Write output files -----------------------------------------------------------
+null <- sapply(args$output, unlink)
+
 null <- mapply(
   write_seq_files, seqs = output_seqs, seqType = outType, file = args$output, 
   MoreArgs = list(compress = args$compress))

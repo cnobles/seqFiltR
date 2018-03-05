@@ -3,9 +3,11 @@ set -ev
 
 # Working directory
 pwd
+ls tests/test_output
 
 # Empty output directory to start
 rm -rf tests/test_output/*
+ls tests/test_output
 
 # Test for sequence filtering (positive and negative selection)
 Rscript seqFilt.R tests/Data/Undetermined_S0_L001_I1_001.fastq.gz -o tests/test_output/seq_filt_I1.fastq -s CGTACTAG --compress
