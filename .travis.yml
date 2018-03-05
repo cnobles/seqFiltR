@@ -1,16 +1,7 @@
 # https://docs.travis-ci.com/user/languages/r
 language: r
-r_packages: 
-  - yaml
-  - pander
-  - stringr
-  - data.table
-  - argparse
-  - parallel
+r: bioc-release
 bioc_packages: ShortRead
-r:
-  - release
 cache: packages
 script:
-  - cd seqFiltR
   - bash tests/test.sh

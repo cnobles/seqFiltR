@@ -11,9 +11,10 @@ License: GNU General Public License v3
 LazyData: TRUE
 Depends:
     R (>= 3.2),
-    ShortRead (>= 1.34),
     stringr (>= 1.2),
     argparse (>= 1.1),
     pander (>= 0.6),
     data.table (>= 1.10),
     parallel (>= 3.4)
+Remotes:
+    bioc::release/ShortRead (>= 1.34)
