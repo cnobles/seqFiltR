@@ -27,9 +27,11 @@ parser <- ArgumentParser(
 parser$add_argument(
   "seqFile", nargs = "+", type = "character", help = desc$seqFile)
 parser$add_argument(
-  "-o", "--output", nargs = "*", type = "character", help = desc$output)
+  "-o", "--output", nargs = "+", type = "character", help = desc$output)
 parser$add_argument(
   "-i", "--index", nargs = "*", type = "character", help = desc$index)
+parser$add_argument(
+  "--header", action = "store_true", help = desc$header)
 parser$add_argument(
   "-n", "--negSelect", action = "store_true", help = desc$negSelect)
 parser$add_argument(
@@ -49,7 +51,7 @@ parser$add_argument(
 parser$add_argument(
   "-q", "--quiet", action = "store_true", help = desc$quiet)
 parser$add_argument(
-  "--stat", nargs = 1, default = "NA", type = "character", help = desc$stat)
+  "--stat", nargs = "*", type = "character", help = desc$stat)
 
 
 ## Parse cmd line args =========================================================
@@ -58,6 +60,9 @@ args <- parser$parse_args(commandArgs(trailingOnly = TRUE))
 
 ## Checks and balance ==========================================================
 if(args$cores > 1){
+  # Stop code since parallel operation has not been constructed yet
+  stop("Parallel options have not yet been implemented.")
+  
   if(args$cores > parallel::detectCores()){
     message(paste("Requested cores is greater than availible for system.",
       "Changing cores to max allowed."))
@@ -67,10 +72,8 @@ if(args$cores > 1){
   args$cores <- 1
 }
 
-if(length(args$output) > 0){
-  if(length(args$seqFile) != length(args$output)){
-    stop("The same number of input and output file names need to be provided.")
-  }
+if(length(args$seqFile) != length(args$output)){
+  stop("The same number of input and output file names need to be provided.")
 }
 
 if(length(args$index) > 1){
@@ -84,7 +87,7 @@ if(length(args$mismatch) != length(args$seq)){
 if(length(args$seq) > 0){
   args$seq <- toupper(gsub("U", "T", args$seq))
   if(any(!unlist(strsplit(paste(args$seq, collapse = ""), "")) %in% 
-         names(IUPAC_CODE_MAP))){
+         names(Biostrings::IUPAC_CODE_MAP))){
     stop("Unknown nucleotides detected in input filtering sequence(s).")
   }
 }
@@ -111,10 +114,12 @@ if(length(args$output) > 0){
 
 # Identify filtering type
 select_methods <- c()
-select_methods <- c(select_methods, ifelse(length(args$index) == 1, 1, NULL))
-select_methods <- c(select_methods, ifelse(length(args$seqFile) > 1, 2, NULL))
-select_methods <- c(select_methods, ifelse(length(args$seq) > 0, 3, NULL))
-methods <- c("input indices", "multiple file input indices", "sequence content")
+if(length(args$index) == 1) select_methods <- c(select_methods, 1)
+if(length(args$seqFile) > 1) select_methods <- c(select_methods, 2)
+if(length(args$seq) > 0) select_methods <- c(select_methods, 3)
+methods <- c(
+  "input indices", "multiple file input indices", "sequence content")[
+    select_methods]
 filType <- paste0(
   ifelse(args$negSelect, "negative", "positive"), 
   " selection using ", 
@@ -128,8 +133,9 @@ input_table <- data.frame(
     paste(args[[i]], collapse = ", ")}))
 input_table <- input_table[
   match(
-    c("seqFile :", "output :", "index :", "negSelect :", "seq :", "mismatch :",  
-      "readNamePattern :", "compress :", "cores :"), input_table$Variables),]
+    c("seqFile :", "output :", "index :", "header :", "negSelect :", "seq :", 
+      "mismatch :", "readNamePattern :", "compress :", "cores :"), 
+    input_table$Variables),]
 if(!args$quiet){
   pandoc.title("seqTrimR Inputs")
   pandoc.table(
@@ -222,9 +228,103 @@ write_seq_files <- function(seqs, seqType, file, compress = FALSE){
   }
 }
 
+#' Filter sequences based on input arguments
+#' This function is the basis for the script.
+filter_seqFile <- function(input_seqs, args){
+  suppressMessages(require("stringr"))
+  suppressMessages(require("ShortRead"))
+  
+  ## Identify sequence names matching across multiple sequence files
+  if(length(input_seqs) > 1){
+    multi_input_ids <- lapply(input_seqs, function(seq){
+      stringr::str_extract(
+        as.character(unique(id(seq))), args$readNamePattern)})
+    multi_input_tbl <- table(unlist(multi_input_ids))
+    if(args$negSelect){
+      multi_input_names <- names(multi_input_tbl)[which(multi_input_tbl == 1)]
+    }else if(args$any){
+      multi_input_names <- names(multi_input_tbl)[which(multi_input_tbl > 1)]
+    }else{
+      multi_input_names <- names(multi_input_tbl)[
+        which(multi_input_tbl == length(input_seqs))]
+    }
+    
+    multi_filter_idx <- lapply(input_seqs, function(seqs, idx){
+      ids <- stringr::str_extract(as.character(id(seqs)), args$readNamePattern)
+      which(ids %in% idx)
+    }, idx = multi_input_names)
+  }
+  
+  
+  ## Identify sequence names by matching to index file
+  if(length(args$index) == 1){
+    input_ids <- lapply(input_seqs, function(seq){
+      stringr::str_extract(as.character(id(seq)), args$readNamePattern)})
+    index_df <- data.table::fread(
+      args$index, verbose = FALSE, data.table = FALSE, header = args$header)
+    index <- stringr::str_extract(
+      as.character(index_df[,1]), args$readNamePattern)
+    
+    index_filter_idx <- lapply(input_ids, function(ids, idx){
+      which(ids %in% idx)
+    }, idx = index)
+  }
+  
+  
+  ## Identify sequences by matching input nucleotide sequence
+  if(length(args$seq) > 0){
+    seq_filter_idx <- lapply(
+      input_seqs, function(seqs, pattern, mismatch, neg, any){
+        
+        vcp <- mapply(function(pat, mis, seqs, neg){
+          v <- vcountPattern(
+            pat, sread(seqs), max.mismatch = mis, fixed = FALSE)
+          if(neg){
+            return(which(v == 0))
+          }else{
+            return(which(v > 0))
+          }
+        }, pat = pattern, mis = mismatch, 
+        MoreArgs = list(seqs = seqs, neg = neg),
+        SIMPLIFY = FALSE)
+        
+        vcp_tbl <- table(unlist(vcp))
+        if(any){
+          return(as.numeric(names(vcp_tbl[which(vcp_tbl >= 1)])))
+        }else{
+          return(as.numeric(names(vcp_tbl[which(vcp_tbl == length(pattern))])))
+        }
+        
+      }, pattern = args$seq, mismatch = args$mismatch, 
+      neg = args$negSelect, any = args$any)
+    
+  }
+  
+  
+  # Consolidate indices from each method employed 
+  lapply(1:length(input_seqs), function(i){
+    idx <- NULL
+    cnt <- 0
+    if(exists("multi_filter_idx")){ 
+      cnt <- cnt + 1
+      idx <- c(idx, multi_filter_idx[[i]]) }
+    if(exists("index_filter_idx")){ 
+      cnt <- cnt + 1
+      idx <- c(idx, index_filter_idx[[i]]) }
+    if(exists("seq_filter_idx")){ 
+      cnt <- cnt + 1
+      idx <- c(idx, seq_filter_idx[[i]]) }
+    if(args$any){
+      return(unique(idx))
+    }else{
+      idx_tbl <- table(idx)
+      return(as.numeric(names(idx_tbl)[idx_tbl == cnt]))
+    }
+  })
+}
+
 
 # Identify indices of input file(s) for filtering ------------------------------
-## Load sequence files
 input_seqs <- mapply(function(file, fileType){
   if(fileType == "fasta"){
     return(ShortRead::readFasta(file))
@@ -232,104 +332,27 @@ input_seqs <- mapply(function(file, fileType){
     return(ShortRead::readFastq(file))
   }}, file = args$seqFile, fileType = seqType, SIMPLIFY = FALSE)
 
+output_indices <- filter_seqFile(input_seqs, args)
 
-## Identify sequence names matching across multiple sequence files
-if(length(input_seqs) > 1){
-  multi_input_ids <- lapply(input_seqs, function(seq){
-    stringr::str_extract(as.character(unique(id(seq))), args$readNamePattern)})
-  multi_input_tbl <- table(unlist(multi_input_ids))
-  if(args$negSelect){
-    multi_input_names <- names(multi_input_tbl)[which(multi_input_tbl == 1)]
-  }else if(args$any){
-    multi_input_names <- names(multi_input_tbl)[which(multi_input_tbl > 1)]
-  }else{
-    multi_input_names <- names(multi_input_tbl)[
-      which(multi_input_tbl == length(input_seqs))]
-  }
-
-  multi_filter_idx <- lapply(input_seqs, function(seqs, idx){
-    ids <- stringr::str_extract(as.character(id(seqs)), args$readNamePattern)
-    which(ids %in% idx)
-  }, idx = multi_input_names)
-}
-
-
-## Identify sequence names by matching to index file
-if(length(args$index) == 1){
-  input_ids <- lapply(input_seqs, function(seq){
-    stringr::str_extract(as.character(id(seq)), args$readNamePattern)})
-  index_df <- data.table::fread(args$index, verbose = FALSE, data.table = FALSE)
-  index <- stringr::str_extract(
-    as.character(index_df[,1]), args$readNamePattern)
-  
-  index_filter_idx <- lapply(input_ids, function(ids, idx){
-    which(ids %in% idx)
-  }, idx = index)
-}
-
-
-## Identify sequences by matching input nucleotide sequence
-if(length(args$seq) > 0){
-  seq_filter_idx <- lapply(
-    input_seqs, function(seqs, pattern, mismatch, neg, any){
-      
-      vcp <- mapply(function(pat, mis, seqs, neg){
-        v <- vcountPattern(pat, sread(seqs), max.mismatch = mis, fixed = FALSE)
-        if(neg){
-          return(which(v == 0))
-        }else{
-          return(which(v > 0))
-        }
-      }, pat = pattern, mis = mismatch, 
-      MoreArgs = list(seqs = seqs, neg = neg),
-      SIMPLIFY = FALSE)
-      
-      vcp_tbl <- table(unlist(vcp))
-      if(any){
-        return(as.numeric(names(vcp_tbl[which(vcp_tbl >= 1)])))
-      }else{
-        return(as.numeric(names(vcp_tbl[which(vcp_tbl == length(pattern))])))
-      }
-      
-    }, pattern = args$seq, mismatch = args$mismatch, 
-    neg = args$negSelect, any = args$any)
-  
-}
-
-
-# Consolidate indices from each method employed --------------------------------
-output_indices <- lapply(1:length(input_seqs), function(i){
-  idx <- NULL
-  cnt <- 0
-  if(exists("multi_filter_idx")){ 
-    cnt <- cnt + 1
-    idx <- c(idx, multi_filter_idx[[i]]) }
-  if(exists("index_filter_idx")){ 
-    cnt <- cnt + 1
-    idx <- c(idx, index_filter_idx[[i]]) }
-  if(exists("seq_filter_idx")){ 
-    cnt < cnt + 1
-    idx <- c(idx, seq_filter_idx[[i]]) }
-  if(args$any){
-    return(unique(idx))
-  }else{
-    idx_tbl <- table(idx)
-    return(as.numeric(names(idx_tbl)[idx_tbl == cnt]))
-  }
-})
+output_seqs <- mapply(
+  function(seqs, idx){ seqs[idx] }, 
+  seqs = input_seqs, idx = output_indices, SIMPLIFY = FALSE)
 
 
 # Write output files -----------------------------------------------------------
+null <- mapply(
+  write_seq_files, seqs = output_seqs, seqType = outType, file = args$output, 
+  MoreArgs = list(compress = args$compress))
 
+q()
 
-
-
-# Work flow: R1xR2 --> index --> sequence
-# 
-# For output from each step, pass on a list of indices for the ShortRead object
-# This will allow for filtering and then just returning an object that contains
-# the correct indices. 
-# 
-# For R1xR2 type filtering: intersect / c(id()) | duplicated / table / which(bool)
-# For index type filtering: which(id() %in% index) or which(!id() %in% index)
-# For seq type filtering  : v[match/count]pattern(fixed = FALSE) | which(lengths() >= 1 or lengths() == 0)
+# Notes:
+## Work flow: R1xR2 --> index --> sequence
+## 
+## For output from each step, pass on a list of indices for the ShortRead object
+## This will allow for filtering and then just returning an object that contains
+## the correct indices. 
+## 
+## For R1xR2 type filtering: intersect / c(id()) | duplicated / table / which(bool)
+## For index type filtering: which(id() %in% index) or which(!id() %in% index)
+## For seq type filtering  : v[match/count]pattern(fixed = FALSE) | which(lengths() >= 1 or lengths() == 0)

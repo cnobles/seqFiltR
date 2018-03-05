@@ -3,8 +3,9 @@ program_short_description : "R-based tool for filtering a sequence file based on
 
 # The following are descriptions of options.
 seqFile : "Sequence file(s) to filter. Can be fasta or fastq formats."
-output : "File name(s) of output file(s). Can specify different format from input if desired. Must provide same number of output file names as input files. If not provided, output will be printed to screen in the input file format."
+output : "File name(s) of output file(s). Can specify different format from input if desired. Must provide same number of output file names as input files."
 index : "A single file containing sequence names to filter for. Each sequence name must match the input file sequence names after extraction of the regex provided by [--readNamePattern]."
+header : "Script assumes no header is given in index file by default. This option changes that behavior to include a header."
 negSelect : "Specify if the filtering process should be negative, positive by default. Negative selection will only return sequences that do not match to input criteria."
 seq : "Filter reads by input nucleotide sequence. DNA, RNA, and ambiguous nucleotide sequences allowed."
 mismatch : "Allowed number of mismatches for sequence matching ([-s]). Ignored if [-s, --seq] is not provided. Default is 0 mismatches."

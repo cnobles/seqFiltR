@@ -49,9 +49,11 @@ Rscript /path/to/seqFilt.R test.fastq -o test.filt.fastq -s ACTCTACGGCATTAGGCTAC
 
 **[-h, --help]** Help information regarding input format and arguments available.
 
-**[-o, --output]** File name(s) of output file(s). Can specify different format from input if desired. Must provide same number of output file names as input files. If not provided, output will be printed to screen in the input file format.
+**[-o, --output]** File name(s) of output file(s). Can specify different format from input if desired. Must provide same number of output file names as input files.
 
 **[-i, --index]** A single file containing sequence names to filter for. Each sequence name must match the input file sequence names after extraction of the regex provided by **[--readNamePattern]**.
+
+**[--header]** Script assumes no header is given in index file by default. This option changes that behavior to include a header. 
 
 **[-n, --negSelect]** Specify if the filtering process should be negative, positive by default. Negative selection will only return sequences that do not match to input criteria.
 
