@@ -3,7 +3,4 @@ language: r
 r: release
 bioc_packages: ShortRead
 cache: packages
-install:
-  - R -e "devtools::install_deps(dep = T)"
-script:
-  - bash tests/test.sh
+script: bash tests/test.sh
