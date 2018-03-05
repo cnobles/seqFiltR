@@ -17,4 +17,3 @@ Depends:
     pander (>= 0.6),
     data.table (>= 1.10),
     parallel (>= 3.4)
-
