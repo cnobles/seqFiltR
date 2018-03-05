@@ -3,10 +3,10 @@ Type: Package
 Title: Sequence filtering tool
 Version: 0.1.0
 Author: Christopher Nobles, Ph.D.
-Maintainer: Christopher Nobles <cnobles@pennmedicine.edu>
-Description: Tool used for filtering sequence files in fasta or fastq
-    format. Filtering can be preformed by several different indexing
-    or sequence based methods.
+Maintainer: Christopher Nobles <cnobles@pennmedicine.upenn.edu>
+Description: Tool used for filtering sequence files in fasta or fastq format. 
+    Filtering can be preformed by several different indexing or sequence based 
+    methods.
 License: GNU General Public License v3
 LazyData: TRUE
 Depends:
@@ -16,5 +16,4 @@ Depends:
     pander (>= 0.6),
     data.table (>= 1.10),
     parallel (>= 3.4)
-Remotes:
-    bioc::release/ShortRead
+Remotes: bioc::release/ShortRead
