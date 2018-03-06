@@ -1,5 +1,6 @@
 # seqFiltR
 [![Build Status](https://travis-ci.org/cnobles/seqFiltR.svg?branch=master)](https://travis-ci.org/cnobles/seqFiltR)
+
 [Dev] R-based tool for filtering a sequence file based on supplied indices or another sequence file.
 
 ## Description
