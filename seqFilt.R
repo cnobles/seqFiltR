@@ -264,8 +264,7 @@ filter_seqFile <- function(input_seqs, args){
   if(length(args$index) == 1){
     input_ids <- lapply(input_seqs, function(seq){
       stringr::str_extract(as.character(id(seq)), args$readNamePattern)})
-    index_df <- data.table::fread(
-      args$index, verbose = FALSE, data.table = FALSE, header = args$header)
+    index_df <- read.delim(args$index, header = args$header)
     index <- stringr::str_extract(
       as.character(index_df[,1]), args$readNamePattern)
     
