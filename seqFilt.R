@@ -137,7 +137,7 @@ input_table <- input_table[
       "mismatch :", "readNamePattern :", "compress :", "cores :"), 
     input_table$Variables),]
 if(!args$quiet){
-  pandoc.title("seqTrimR Inputs")
+  pandoc.title("seqFiltR Inputs")
   pandoc.table(
     data.frame(input_table, row.names = NULL), 
     justify = c("left", "left"), 
