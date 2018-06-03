@@ -93,7 +93,9 @@ if(length(args$seq) > 0){
 }
 
 # Determine input sequence file type(s)
-seqType <- stringr::str_extract(args$seqFile, ".fa[\\w]*")
+seqType <- unlist(strsplit(args$seqFile, "/"))
+seqType <- seqType[length(seqType)]
+seqType <- stringr::str_extract(seqType, ".fa[\\w]*")
 if(any(!seqType %in% c(".fa", ".fq", ".fasta", ".fastq"))){
   stop(paste(
     "Unrecognized sequence file type, please convert to '*.fasta' or", 
@@ -103,7 +105,9 @@ seqType <- ifelse(seqType %in% c(".fa", ".fasta"), "fasta", "fastq")
 
 # Determine sequence output file type(s)
 if(length(args$output) > 0){
-  outType <- stringr::str_extract(args$output, ".fa[\\w]*")
+  outType <- unlist(strsplit(args$output, "/"))
+  outType <- outType[length(outType)]
+  outType <- stringr::str_extract(outType, ".fa[\\w]*")
   if(any(!outType %in% c(".fa", ".fq", ".fasta", ".fastq"))){
     stop(paste(
       "Unrecognized output sequence file type, please change to", 
