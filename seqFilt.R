@@ -13,9 +13,8 @@ suppressMessages(library("pander"))
 panderOptions("table.style", "simple")
 panderOptions("table.split.table", Inf)
 
-code_dir <- dirname(
-  sub("--file=", "", 
-    grep("--file=", commandArgs(trailingOnly = FALSE), value = TRUE)))
+code_dir <- dirname(sub("--file=", "", grep(
+  "--file=", commandArgs(trailingOnly = FALSE), value = TRUE)))
 
 desc <- yaml::yaml.load_file(file.path(code_dir, "descriptions.yml"))
 
@@ -347,6 +346,21 @@ output_seqs <- mapply(
 
 
 # Write output files -----------------------------------------------------------
+if(args$stat != FALSE){
+  sampleName <- strsplit(args$output, "/", fixed = TRUE)
+  sampleName <- mapply("[[", sampleName, lengths(sampleName))
+  sampleName <- strsplit(sampleName, ".fa", fixed = TRUE)
+  sampleName <- mapply("[[", sampleName, 1)
+  write.table(
+    data.frame(
+      sampleName = sampleName,
+      metric = "reads",
+      count = lengths(output_seqs)),
+    file = args$stat,
+    sep = ",", row.names = FALSE, col.names = FALSE, quote = FALSE)
+}
+ 
+ 
 null <- sapply(args$output, unlink)
 
 null <- mapply(

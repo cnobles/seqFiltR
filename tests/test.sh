@@ -8,20 +8,24 @@ rm -f tests/seq_*
 Rscript check_for_required_packages.R
 
 # Test for sequence filtering (positive and negative selection)
-Rscript seqFilt.R tests/Data/Undetermined_S0_L001_I1_001.fastq.gz -o tests/seq_filt_I1.fastq -s CGTACTAG --compress
+Rscript seqFilt.R tests/Data/Undetermined_S0_L001_I1_001.fastq.gz -o tests/seq_filt_I1.fastq \
+  -s CGTACTAG --stat tests/seq_filt_I1.stat.csv --compress
 filt_test_len=$(zcat tests/seq_filt_I1.fastq.gz | sed -n '2~4p' | wc -l)
 if [ ! $filt_test_len = 50 ]; then
     exit 1
 fi
 
-Rscript seqFilt.R tests/Data/Undetermined_S0_L001_I1_001.fastq.gz -o tests/seq_negfilt_I1.fastq -s CGTACTAG --compress -n
+Rscript seqFilt.R tests/Data/Undetermined_S0_L001_I1_001.fastq.gz -o tests/seq_negfilt_I1.fastq \
+  -s CGTACTAG --stat tests/seq_negfilt_I1.stat.csv --compress -n
 negfilt_test_len=$(zcat tests/seq_negfilt_I1.fastq.gz | sed -n '2~4p' | wc -l)
 if [ ! $negfilt_test_len = 50 ]; then
     exit 1
 fi
 
 # Test for sequence filtering by overlapping indices
-Rscript seqFilt.R tests/seq_filt_I1.fastq.gz tests/seq_negfilt_I1.fastq.gz -o tests/seq_A_overlap_I1.fastq tests/seq_B_overlap_I1.fastq --compress
+Rscript seqFilt.R tests/seq_filt_I1.fastq.gz tests/seq_negfilt_I1.fastq.gz \
+  -o tests/seq_A_overlap_I1.fastq tests/seq_B_overlap_I1.fastq \
+  --stat tests/seq_filt_I1_compare.stat.csv --compress
 ovlp_A_test_len=$(zcat tests/seq_A_overlap_I1.fastq.gz | sed -n '2~4p' | wc -l)
 ovlp_B_test_len=$(zcat tests/seq_B_overlap_I1.fastq.gz | sed -n '2~4p' | wc -l)
 if [ ! $ovlp_A_test_len = 0 ] | [ ! $ovlp_B_test_len = 0 ]; then
@@ -32,14 +36,18 @@ fi
 zcat tests/seq_filt_I1.fastq.gz | sed -n '1~4p' > tests/seq_index.txt
 head tests/seq_index.txt -n 3
 
-Rscript seqFilt.R tests/Data/Undetermined_S0_L001_R1_001.fastq.gz -o tests/seq_filt_R1.fastq -i tests/seq_index.txt --compress
+Rscript seqFilt.R tests/Data/Undetermined_S0_L001_R1_001.fastq.gz -o tests/seq_filt_R1.fastq \
+  -i tests/seq_index.txt --stat tests/seq_filt_R1.stat.csv --compress
 idx_test_len=$(zcat tests/seq_filt_R1.fastq.gz | sed -n '2~4p' | wc -l)
 if [ ! $idx_test_len = 50 ]; then
     exit 1
 fi
 
+# Stats of each step
+cat tests/*.stat.csv
+
 # Cleanup
-rm -f tests/seq_*
+rm -f tests/seq_* tests/*.stat.csv
 
 echo "Passed all tests."
 exit
