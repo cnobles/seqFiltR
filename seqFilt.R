@@ -50,7 +50,7 @@ parser$add_argument(
 parser$add_argument(
   "-q", "--quiet", action = "store_true", help = desc$quiet)
 parser$add_argument(
-  "--stat", nargs = "*", type = "character", help = desc$stat)
+  "--stat", nargs = 1, default = FALSE, type = "character", help = desc$stat)
 
 
 ## Parse cmd line args =========================================================
